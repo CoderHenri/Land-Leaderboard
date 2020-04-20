@@ -100,3 +100,45 @@ function GetLandData() {
       i++;
     }  
   }
+
+//Testbed
+
+  function GetLandData2() {
+   
+
+  
+    var url = "https://axieinfinity.com/graphql-server/graphql"
+    var from = 0;
+    var size = 100;
+    var i = 0;
+    var y = 0;
+  
+ 
+      fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        },
+        body: JSON.stringify({
+          operationName : "GetLands",
+          variables: { 
+            from, 
+            size,
+          },
+          query: "query GetLands($from: Int!, $size: Int!, $sort: LandsSortBy!, $criteria: LandsCriteria) {   lands(criteria: $criteria, from: $from, size: $size, sort: $sort) {     total     result {       ...LandBrief       __typename     }     __typename   } }  fragment LandBrief on Land {   realTokenId   owner   landType   row   col   auction {     currentPrice     startingTimestamp     __typename   }   ownerProfile {     name     __typename   }   __typename } "
+        })
+      })
+      .then(function(response) { 
+        return response.json(); 
+      })
+  
+      .then(function(data) {
+  
+        
+        console.log(GenesisPlotOwners);
+        console.log("entire data:", data);
+    });
+
+ 
+  }
