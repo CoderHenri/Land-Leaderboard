@@ -1,6 +1,6 @@
 //Testbed
 
-function GetLandData() {
+function GetLandData2() {
  
   var url = "https://axieinfinity.com/graphql-server/graphql"
   
@@ -21,7 +21,6 @@ function GetLandData() {
     })
   
     .then(function(data) {
-      var GenesisData = data;
       LeaderboardMaker(data, 'GList');
       console.log("entire data:", data);
   });
@@ -44,7 +43,6 @@ function GetLandData() {
     })
   
     .then(function(data) {
-      var GenesisData = data;
       LeaderboardMaker(data, 'GList');
       console.log("entire data:", data);
   });
@@ -135,7 +133,7 @@ function GetLandData() {
 }
 
 
-function GetLandData2() {
+function GetLandData() {
  
   var url = "https://axieinfinity.com/graphql-server/graphql"
 
@@ -149,7 +147,7 @@ function GetLandData2() {
     },
       
     body: JSON.stringify({
-      "operationName":"GetLandsGrid","variables":{"from":0,"size":2000,"sort":"PriceAsc","criteria":{"owner":null,"type":[]}},
+      "operationName":"GetLandsGrid","variables":{"from":0,"size":100,"sort":"PriceAsc","criteria":{"owner":null,"type":["Genesis"]}},
       "query":"query GetLandsGrid($from: Int!, $size: Int!, $sort: LandsSortBy!, $criteria: LandsCriteria) {\n  lands(criteria: $criteria, from: $from, size: $size, sort: $sort) {\n    total\n    result {\n      ...LandBriefV2\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment LandBriefV2 on Land {\n  realTokenId\n  owner\n  landType\n  row\n  col\n  auction {\n    currentPrice\n    startingTimestamp\n    currentPriceUSD\n    __typename\n  }\n  __typename\n}\n"})
     })
     .then(function(response) { 
@@ -157,7 +155,7 @@ function GetLandData2() {
     })
   
     .then(function(data) {
-      //LeaderboardMaker(data, 'GList');
+      LeaderboardMaker(data, 'GList');
       console.log("entire data:", data);
   });
 
@@ -166,8 +164,6 @@ function GetLandData2() {
 
 
 function LeaderboardMaker(JSONData, IDList){
-
-  console.log("LeaderboardMaker" + JSON.stringify(JSONData));
 
   var Owners = [];
   var OwnersLeaderboard = [];
@@ -207,81 +203,60 @@ function LeaderboardMaker(JSONData, IDList){
 
   OwnersLeaderboard.sort((a,b) => b.amount - a.amount || a.owner - b.owner);
 
-  document.getElementById(IDList).innerHTML = '<ol class="LL">' + OwnersLeaderboard.map(function (genesis) {
-      return '<li>' + String(genesis["amount"]) + " Plots owned by " + String(genesis["owner"]) + '</li>';
-  }).join('') + '</ol>';
-  console.log("OwnerLead: " + JSON.stringify(OwnersLeaderboard));
+  ProfileNamer(OwnersLeaderboard, IDList);
 
-
-  /*
-    var GenesisPlotOwners = [];
-    var GenLeaders = [];
-
-    var text = "Invalid";
-    try {       //catches the error if there is either a street or no land owner account
-      text = data.data.land.ownerProfile.name;
-      if(text == null) {
-        text = data.data.land.owner;
-      } 
-
-      if(text != "Invalid") {
-        GenesisPlotOwners.push(text);
-        
-      } 
-    }
-    catch {
-      text = "Non-Registered Users";
-
-      GenesisPlotOwners.push(text);
-    }
-    console.log(GenesisPlotOwners);
-    console.log("entire data:", data);
-
-    if(y == 81) {
-
-      GenesisPlotOwners.sort();
-
-      for(d=0; d < 7; d++){     // Deletes the street plots between the Genesis plots
-        const index = GenesisPlotOwners.indexOf("Non-Registered Users");
-        if (index > -1) {
-          GenesisPlotOwners.splice(index, 1);
-        }
-      }
-
-      var current = null;
-      var cnt = 0;
-      for (var i = 0; i < GenesisPlotOwners.length; i++) {
-          if (GenesisPlotOwners[i] != current) {
-              if (cnt > 0) {
-
-                  GenLeaders.push({amount : cnt, owner : current});
-              }
-              current = GenesisPlotOwners[i];
-              cnt = 1;
-          } else {
-              cnt++;
-          }
-      }
-      if (cnt > 0) {
-          GenLeaders.push({amount : cnt, owner : current});
-      }
-
-      GenLeaders.sort((a,b) => b.amount - a.amount || a.owner - b.owner);
-
-      document.getElementById('GList').innerHTML = '<ol id="GL">' + GenLeaders.map(function (genesis) {
-          return '<li>' + String(genesis["amount"]) + " Genesis Plot(s) owned by " + String(genesis["owner"]) + '</li>';
-      }).join('') + '</ol>';
-      console.log(GenLeaders);
-    }
-    console.log(y);
-    y++;
-  if(row > -30) {
-    row = row - 1;
-  } else if(col < -9) {
-    col = col + 1;
-  }
-  console.log(row, col);
-  i++;
-}  
-*/
 }
+
+async function ProfileNamer(Array, IDList) {
+
+  var url = "https://axieinfinity.com/graphql-server/graphql"
+  var x = 0;
+  for(i=0; Array.length > i; i++) {
+    var loomAddy = Array[x].owner;
+    console.log(Array);
+    ethAddy = JSON.stringify(loomAddy);
+
+
+    await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+      
+      body: JSON.stringify({
+        operationName:"GetProfileByLoomAddress",
+        variables:{
+          loomAddress:loomAddy
+        },
+        query:"query GetProfileByLoomAddress($loomAddress: String!) {\n  publicProfileWithLoomAddress(loomAddress: $loomAddress) {\n    ...Profile\n    __typename\n  }\n}\n\nfragment Profile on PublicProfile {\n  accountId\n  name\n  addresses {\n    ...Addresses\n    __typename\n  }\n  __typename\n}\n\nfragment Addresses on NetAddresses {\n  ethereum\n  tomo\n  loom\n  __typename\n}\n"})
+    })
+    .then(function(response) { 
+      return response.json(); 
+    })
+  
+    .then(function(data) {
+      var realName = "";
+      try {
+        realName = data.data.publicProfileWithLoomAddress.name;
+      }
+      catch {
+        realName = "Nor user Profile";
+      }
+      Array[x].owner = realName;
+      console.log("NameData:" + realName + "Arraycheck" + Array[x].owner);
+      x++;
+    });
+  
+  }
+  ListMaker(Array, IDList);
+}
+
+function ListMaker(Array, IDList) {
+
+  console.log("returned Array" + JSON.stringify(Array));
+  document.getElementById(IDList).innerHTML = '<ol class="LL">' + Array.map(function (genesis) {
+    return '<li>' + String(genesis["amount"]) + " Plots owned by " + String(genesis["owner"]) + '</li>';
+  }).join('') + '</ol>';
+}
+
