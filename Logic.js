@@ -1,9 +1,25 @@
-//Testbed
 
-function GetLandData2() {
+
+function GetLandData(Reihenfolge) {
  
+  console.log("Reihe  " + Reihenfolge);
+  
   var url = "https://axieinfinity.com/graphql-server/graphql"
   
+  if(Reihenfolge === "Genesis") {
+    GetGen(url, Reihenfolge);
+  } else if(Reihenfolge === "Mystic") {
+    GetMystic(url, Reihenfolge);
+  } else if(Reihenfolge === "Arctic") {
+    GetArctic(url, Reihenfolge);
+  } else if(Reihenfolge === "Forest") {
+    GetForest(url, Reihenfolge);
+  } else if(Reihenfolge === "Savannah") {
+    GetSavannah(url, Reihenfolge);
+  } 
+
+
+  /*not working
   //Total
   fetch(url, {
     method: "POST",
@@ -24,8 +40,13 @@ function GetLandData2() {
       LeaderboardMaker(data, 'GList');
       console.log("entire data:", data);
   });
+*/
 
-  
+
+}
+
+
+function GetGen(url, Reihenfolge){
   //Genesis
   fetch(url, {
     method: "POST",
@@ -43,10 +64,12 @@ function GetLandData2() {
     })
   
     .then(function(data) {
-      LeaderboardMaker(data, 'GList');
+      LeaderboardMaker(data, 'GList', Reihenfolge);
       console.log("entire data:", data);
   });
-    
+}
+
+function GetMystic(url, Reihenfolge){
   //Mystic
   fetch(url, {
     method: "POST",
@@ -64,10 +87,12 @@ function GetLandData2() {
     })
   
     .then(function(data) { 
-      LeaderboardMaker(data, 'MList');
+      LeaderboardMaker(data, 'MList', Reihenfolge);
       console.log("entire data:", data);
   });
- 
+}
+
+function GetArctic(url, Reihenfolge){
   //Arctic
   fetch(url, {
     method: "POST",
@@ -85,10 +110,12 @@ function GetLandData2() {
     })
   
     .then(function(data) { 
-      LeaderboardMaker(data, 'AList');
+      LeaderboardMaker(data, 'AList', Reihenfolge);
       console.log("entire data:", data);
   });
+}
 
+function GetForest(url, Reihenfolge){
   //Forest
   fetch(url, {
     method: "POST",
@@ -106,10 +133,12 @@ function GetLandData2() {
     })
   
     .then(function(data) { 
-      LeaderboardMaker(data, 'FList');
+      LeaderboardMaker(data, 'FList', Reihenfolge);
       console.log("entire data:", data);
   });
+}
 
+function GetSavannah(url, Reihenfolge){
   //Savannah
   fetch(url, {
     method: "POST",
@@ -127,13 +156,16 @@ function GetLandData2() {
     })
   
     .then(function(data) { 
-      LeaderboardMaker(data, 'SList');
+      LeaderboardMaker(data, 'SList', Reihenfolge);
       console.log("entire data:", data);
   });
 }
 
 
-function GetLandData() {
+
+//Testbed
+
+function GetLandData2() {
  
   var url = "https://axieinfinity.com/graphql-server/graphql"
 
@@ -163,7 +195,7 @@ function GetLandData() {
 }
 
 
-function LeaderboardMaker(JSONData, IDList){
+function LeaderboardMaker(JSONData, IDList, Reihenfolge){
 
   var Owners = [];
   var OwnersLeaderboard = [];
@@ -203,11 +235,11 @@ function LeaderboardMaker(JSONData, IDList){
 
   OwnersLeaderboard.sort((a,b) => b.amount - a.amount || a.owner - b.owner);
 
-  ProfileNamer(OwnersLeaderboard, IDList);
+  ProfileNamer(OwnersLeaderboard, IDList, Reihenfolge);
 
 }
 
-async function ProfileNamer(Array, IDList) {
+async function ProfileNamer(Array, IDList, Reihenfolge) {
 
   var url = "https://axieinfinity.com/graphql-server/graphql"
   var x = 0;
@@ -249,14 +281,27 @@ async function ProfileNamer(Array, IDList) {
     });
   
   }
-  ListMaker(Array, IDList);
+  ListMaker(Array, IDList, Reihenfolge);
 }
 
-function ListMaker(Array, IDList) {
+function ListMaker(Array, IDList, Reihenfolge) {
 
   console.log("returned Array" + JSON.stringify(Array));
   document.getElementById(IDList).innerHTML = '<ol class="LL">' + Array.map(function (genesis) {
     return '<li>' + String(genesis["amount"]) + " Plots owned by " + String(genesis["owner"]) + '</li>';
   }).join('') + '</ol>';
+
+  if(Reihenfolge === "Genesis"){
+    GetLandData("Mystic");
+  } else if(Reihenfolge === "Mystic") {
+    GetLandData("Arctic");
+  } else if(Reihenfolge === "Arctic") {
+    GetLandData("Forest");
+  } else if(Reihenfolge === "Forest") {
+    GetLandData("Savannah");
+  } else if(Reihenfolge === "Savannah") {
+    var L = document.getElementById("lds-hourglass");
+    L.style.display = "none";
+  }
 }
 
