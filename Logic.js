@@ -1,9 +1,7 @@
 
 
 function GetLandData(Reihenfolge) {
- 
-  console.log("Reihe  " + Reihenfolge);
-  
+
   var url = "https://axieinfinity.com/graphql-server/graphql"
   
   if(Reihenfolge === "Genesis") {
@@ -273,7 +271,7 @@ async function ProfileNamer(Array, IDList, Reihenfolge) {
         realName = data.data.publicProfileWithLoomAddress.name;
       }
       catch {
-        realName = "Nor user Profile";
+        realName = "No User Profile";
       }
       Array[x].owner = realName;
       console.log("NameData:" + realName + "Arraycheck" + Array[x].owner);
@@ -284,6 +282,8 @@ async function ProfileNamer(Array, IDList, Reihenfolge) {
   ListMaker(Array, IDList, Reihenfolge);
 }
 
+var TotalPlotsOwned = [];
+
 function ListMaker(Array, IDList, Reihenfolge) {
 
   console.log("returned Array" + JSON.stringify(Array));
@@ -292,16 +292,94 @@ function ListMaker(Array, IDList, Reihenfolge) {
   }).join('') + '</ol>';
 
   if(Reihenfolge === "Genesis"){
+    TotalPlotsOwned = TotalPlotsOwned.concat(Array);
     GetLandData("Mystic");
   } else if(Reihenfolge === "Mystic") {
+    TotalPlotsOwned = TotalPlotsOwned.concat(Array);
     GetLandData("Arctic");
   } else if(Reihenfolge === "Arctic") {
+    TotalPlotsOwned = TotalPlotsOwned.concat(Array);
     GetLandData("Forest");
   } else if(Reihenfolge === "Forest") {
+    TotalPlotsOwned = TotalPlotsOwned.concat(Array);
     GetLandData("Savannah");
   } else if(Reihenfolge === "Savannah") {
+    TotalPlotsOwned = TotalPlotsOwned.concat(Array);
     var L = document.getElementById("lds-hourglass");
     L.style.display = "none";
   }
+
+  console.log("gets displayed: " + JSON.stringify(TotalPlotsOwned));
+
+  if(Reihenfolge === "Savannah") {
+    TotalLeaderboardWriter(TotalPlotsOwned);
+  }
+
 }
 
+function TotalLeaderboardWriter(ArrayAr) {
+  console.log("Gets called <3");
+  
+  var amount = ArrayAr;
+  var EinzelTotal = [];
+
+  var seen = {};
+  amount = amount.filter(function(entry) {
+      var previous;
+  
+      // Have we seen this label before?  owner ersetzt label
+      if (seen.hasOwnProperty(entry.owner)) {
+          // Yes, grab it and add this data to it -> amount is taking place of data
+          previous = seen[entry.owner];
+          previous.amount.push(entry.amount);
+  
+          // Don't keep this entry, we've merged it into the previous one
+          return false;
+      }
+  
+      // entry.data probably isn't an array; make it one for consistency
+      if (!Array.isArray(entry.amount)) {
+          entry.amount = [entry.amount];
+      }
+  
+      // Remember that we've seen it
+      seen[entry.owner] = entry;
+  
+      // Keep this one, we'll merge any others that match into it
+      return true;
+  });
+
+  console.log(JSON.stringify(ArrayAr));
+  console.log("Testo1.5.owner: " + JSON.stringify(amount));
+  console.log("TEEEEEESSSSSST: " + JSON.stringify(amount[1]));
+
+  var OneOwnerOneNumber = [];
+
+  for(i=0; amount.length > i; i++) {
+    amount[i].amount = sum(amount[i].amount);
+
+    amount.sort((a,b) => b.amount - a.amount || a.owner - b.owner);
+
+    document.getElementById("TList").innerHTML = '<ol class="LL">' + amount.map(function (genesis) {
+      return '<li>' + String(genesis["amount"]) + " Plots owned by " + String(genesis["owner"]) + '</li>';
+    }).join('') + '</ol>';
+
+  }
+}
+
+
+function sum(input){
+             
+  if (toString.call(input) !== "[object Array]")
+     return false;
+       
+             var total =  0;
+             for(var i=0;i<input.length;i++)
+               {                  
+                 if(isNaN(input[i])){
+                 continue;
+                  }
+                   total += Number(input[i]);
+                }
+              return total;
+             }
