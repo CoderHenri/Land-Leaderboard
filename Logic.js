@@ -37,7 +37,6 @@ function GetGen(url, Reihenfolge){
   
     .then(function(data) {
       LeaderboardMaker(data, 'GList', Reihenfolge);
-      console.log("entire data:", data);
   });
 }
 
@@ -60,7 +59,6 @@ function GetMystic(url, Reihenfolge){
   
     .then(function(data) { 
       LeaderboardMaker(data, 'MList', Reihenfolge);
-      console.log("entire data:", data);
   });
 }
 
@@ -83,7 +81,6 @@ function GetArctic(url, Reihenfolge){
   
     .then(function(data) { 
       LeaderboardMaker(data, 'AList', Reihenfolge);
-      console.log("entire data:", data);
   });
 }
 
@@ -106,7 +103,6 @@ function GetForest(url, Reihenfolge){
   
     .then(function(data) { 
       LeaderboardMaker(data, 'FList', Reihenfolge);
-      console.log("entire data:", data);
   });
 }
 
@@ -129,7 +125,6 @@ function GetSavannah(url, Reihenfolge){
   
     .then(function(data) { 
       LeaderboardMaker(data, 'SList', Reihenfolge);
-      console.log("entire data:", data);
   });
 }
 
@@ -160,7 +155,7 @@ function LeaderboardMaker(JSONData, IDList, Reihenfolge){
       if (Owners[i] != current) {
           if (cnt > 0) {
 
-            OwnersLeaderboard.push({amount : cnt, owner : current});
+            OwnersLeaderboard.push({amount : cnt, owner : current, LoomOwner : current});
           }
           current = Owners[i];
           cnt = 1;
@@ -169,7 +164,7 @@ function LeaderboardMaker(JSONData, IDList, Reihenfolge){
       }
   }
   if (cnt > 0) {
-    OwnersLeaderboard.push({amount : cnt, owner : current});
+    OwnersLeaderboard.push({amount : cnt, owner : current, LoomOwner : current});
   }
 
   OwnersLeaderboard.sort((a,b) => b.amount - a.amount || a.owner - b.owner);
@@ -178,51 +173,68 @@ function LeaderboardMaker(JSONData, IDList, Reihenfolge){
 
 }
 
+var LoomNameArray = [];
+
 async function ProfileNamer(Array, IDList, Reihenfolge) {
 
   var url = "https://axieinfinity.com/graphql-server/graphql"
-  var x = 0;
+
   for(i=0; Array.length > i; i++) {
-    var loomAddy = Array[x].owner;
-    console.log(Array);
+    var loomAddy = Array[i].owner;
     ethAddy = JSON.stringify(loomAddy);
+    
+    var FetchChecker = "NEIN";
+    FetchChecker = "NEIN";
 
-
-    await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-      },
-      
-      body: JSON.stringify({
-        operationName:"GetProfileByLoomAddress",
-        variables:{
-          loomAddress:loomAddy
+    for(m=0; LoomNameArray.length > m; m++) {
+      if(LoomNameArray[m].LoomAddy == Array[i].owner) {
+        
+        console.log("It fucking works");
+        Array[i].owner = LoomNameArray[m].Besitzer;
+        console.log("Changed and faster Array: " + JSON.stringify(Array));
+        FetchChecker = "JA";
+        break;
+      }
+    }
+    console.log("Checker " + FetchChecker);
+    if(FetchChecker == "NEIN") {
+      await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
         },
-        query:"query GetProfileByLoomAddress($loomAddress: String!) {\n  publicProfileWithLoomAddress(loomAddress: $loomAddress) {\n    ...Profile\n    __typename\n  }\n}\n\nfragment Profile on PublicProfile {\n  accountId\n  name\n  addresses {\n    ...Addresses\n    __typename\n  }\n  __typename\n}\n\nfragment Addresses on NetAddresses {\n  ethereum\n  tomo\n  loom\n  __typename\n}\n"})
-    })
-    .then(function(response) { 
-      return response.json(); 
-    })
+      
+        body: JSON.stringify({
+          operationName:"GetProfileByLoomAddress",
+          variables:{
+            loomAddress:loomAddy
+          },
+          query:"query GetProfileByLoomAddress($loomAddress: String!) {\n  publicProfileWithLoomAddress(loomAddress: $loomAddress) {\n    ...Profile\n    __typename\n  }\n}\n\nfragment Profile on PublicProfile {\n  accountId\n  name\n  addresses {\n    ...Addresses\n    __typename\n  }\n  __typename\n}\n\nfragment Addresses on NetAddresses {\n  ethereum\n  tomo\n  loom\n  __typename\n}\n"})
+      })
+      
+      .then(function(response) { 
+        return response.json(); 
+      })
   
-    .then(function(data) {
-      var realName = "";
-      try {
-        realName = data.data.publicProfileWithLoomAddress.name;
-      }
-      catch {
-        realName = "No User Profile";
-      }
-      Array[x].owner = realName;
-      console.log("NameData:" + realName + "Arraycheck" + Array[x].owner);
-      x++;
-    });
-  
+      .then(function(data) {
+        var realName = "";
+        try {
+          realName = data.data.publicProfileWithLoomAddress.name;
+        }
+        catch {
+          realName = "No User Profile";
+        }
+        LoomNameArray.push({LoomAddy : Array[i].LoomOwner, Besitzer : realName});
+        console.log("Loom-Profile Array: " + JSON.stringify(LoomNameArray));
+        console.log("StartArray-Profile Array: " + JSON.stringify(Array));
+        Array[i].owner = realName;
+      });
+    }
   }
   ListMaker(Array, IDList, Reihenfolge);
 }
-
+//--------------------------
 var TotalPlotsOwned = [];
 
 function ListMaker(Array, IDList, Reihenfolge) {
@@ -250,8 +262,6 @@ function ListMaker(Array, IDList, Reihenfolge) {
     L.style.display = "none";
   }
 
-  console.log("gets displayed: " + JSON.stringify(TotalPlotsOwned));
-
   if(Reihenfolge === "Savannah") {
     TotalLeaderboardWriter(TotalPlotsOwned);
   }
@@ -259,7 +269,6 @@ function ListMaker(Array, IDList, Reihenfolge) {
 }
 
 function TotalLeaderboardWriter(ArrayAr) {
-  console.log("Gets called <3");
   
   var amount = ArrayAr;
   var EinzelTotal = [];
@@ -290,10 +299,6 @@ function TotalLeaderboardWriter(ArrayAr) {
       return true;
   });
 
-  console.log(JSON.stringify(ArrayAr));
-  console.log("Testo1.5.owner: " + JSON.stringify(amount));
-  console.log("TEEEEEESSSSSST: " + JSON.stringify(amount[1]));
-
   var OneOwnerOneNumber = [];
 
   for(i=0; amount.length > i; i++) {
@@ -314,13 +319,13 @@ function sum(input){
   if (toString.call(input) !== "[object Array]")
      return false;
        
-             var total =  0;
-             for(var i=0;i<input.length;i++)
-               {                  
-                 if(isNaN(input[i])){
-                 continue;
-                  }
-                   total += Number(input[i]);
-                }
-              return total;
-             }
+  var total =  0;
+  for(var i=0;i<input.length;i++)
+  {                  
+    if(isNaN(input[i])){
+      continue;
+    }
+    total += Number(input[i]);
+  }
+  return total;
+}
