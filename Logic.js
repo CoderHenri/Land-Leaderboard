@@ -188,15 +188,12 @@ async function ProfileNamer(Array, IDList, Reihenfolge) {
 
     for(m=0; LoomNameArray.length > m; m++) {
       if(LoomNameArray[m].LoomAddy == Array[i].owner) {
-        
-        console.log("It fucking works");
         Array[i].owner = LoomNameArray[m].Besitzer;
-        console.log("Changed and faster Array: " + JSON.stringify(Array));
         FetchChecker = "JA";
         break;
       }
     }
-    console.log("Checker " + FetchChecker);
+
     if(FetchChecker == "NEIN") {
       await fetch(url, {
         method: "POST",
@@ -226,8 +223,6 @@ async function ProfileNamer(Array, IDList, Reihenfolge) {
           realName = "No User Profile";
         }
         LoomNameArray.push({LoomAddy : Array[i].LoomOwner, Besitzer : realName});
-        console.log("Loom-Profile Array: " + JSON.stringify(LoomNameArray));
-        console.log("StartArray-Profile Array: " + JSON.stringify(Array));
         Array[i].owner = realName;
       });
     }
