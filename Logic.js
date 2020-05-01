@@ -2,7 +2,7 @@
 
 function GetLandData(Reihenfolge) {
 
-  var url = "https://axieinfinity.com/graphql-server/graphql"
+  var url = "https://axieinfinity.com/graphql-server/graphql";
   
   if(Reihenfolge === "Genesis") {
     GetGen(url, Reihenfolge);
